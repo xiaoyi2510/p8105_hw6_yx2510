@@ -102,6 +102,7 @@ We can see from the histgram that the birthweight data roughly follows normal di
 We can first select best model for each size based on Cp and adjusted R-squared.
 ```{r}
 select_best = regsubsets(bwt ~ ., data = birth_tidy)
+fit_best = summary(select_best)
 
 ```
 
@@ -115,12 +116,27 @@ I plotted the Cp value and adjusted r-squared for different number of parameters
 
 Here is the model I chose.
 ```{r}
-model1 = lm(bwt ~ )
+model1 = lm(bwt ~ babysex + bhead + blength + delwt + frace + gaweeks + mrace + ppbmi + smoken, data = birth_tidy)
+summary(model1)
 ```
 
 
-3. compare models
+3.  show a plot of model residuals against fitted values
 ```{r}
-
+birth_tidy %>% 
+  add_residuals(model1) %>% 
+  add_predictions(model1) %>% 
+  ggplot(aes(x = pred, y = resid)) + geom_point() +
+        geom_point(alpha = 0.2) +
+    geom_smooth() +
+    labs(
+        y = "Residual Value",
+        x = "Prediction Value"
+    )
 ```
+comment: The plot shows that the model poorly predicts very low and high birthweight
+
+
+
+
 
