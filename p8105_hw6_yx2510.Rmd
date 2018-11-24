@@ -38,9 +38,10 @@ baltimore_model %>%
   mutate(OR = exp(estimate), # transform back
          lower_bound = exp(estimate - std.error*1.96),
          upper_bound = exp(estimate + std.error*1.96)) %>%
-  filter(term == "victim_racenon-White") %>% 
+  filter(term == "victim_racenon_white") %>% 
   select(term, log_OR = estimate, OR, lower_bound, upper_bound, p.value) %>% 
-  rename("odds_ratio" = OR, "log_odds_ratio" = log_OR) 
+  rename("odds_ratio" = OR, "log_odds_ratio" = log_OR) %>%
+         knitr::kable(digits = 3)
 ```
 
 Comment: the odds ratio estimate for victom_race (non_white) is 0.441 with 95% confidence interval being 0.313 to 0.62. This suggested that the odds of solving the non-white-related cases is 0.441 as that of the-white-invloved cases. 
@@ -89,3 +90,25 @@ birth_tidy = birth_data %>%
            ) 
 ```
 
+2. regression model
+We first plotted the distribution of birthweight
+```{r}
+hist(birth_tidy$bwt)
+```
+
+We can see from the histgram that the birthweight data roughly follows normal distribution.
+
+
+We can first select best model for each size based on Cp and adjusted R-squared.
+```{r}
+fit_best = summary(regsubsets(bwt ~ ., data = birth_tidy))
+
+```
+
+```{r}
+plot(2:10, fit_best$cp, xlab="Number of parameters", ylab="Cp Statistic")
+abline(0,1) 
+
+plot(2:10, fit_best$adjr2, xlab="Number of parameters", ylab="Adjusted R2")
+```
+I plotted the Cp value and adjusted r-squared for different number of parameters to see when Cp is closest to 1 (unbiased) and adjusted R2 is the largest. Cp value and R-2 did not get better noticeabaly after Number of parameters reached 8. However, I'd like to keep the demographic information (babysex) in the 9th medel, so I chose the model with 9 parameters.
