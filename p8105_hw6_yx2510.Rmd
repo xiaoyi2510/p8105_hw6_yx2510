@@ -75,5 +75,14 @@ homicide_nest %>%
 1. Load and clean the data for regression analys
 ```{r}
 birth_data = read_csv("./data/birthweight.csv")
+   janitor::clean_names()
+   
+birth_tidy = birth_data %>%
+    mutate(babysex = as.factor(babysex),
+           frace = as.factor(frace),
+           malform = as.factor(malform),
+           mrace = as.factor(mrace),
+            bwt = bwt*0.0022
+           ) 
 ```
 
