@@ -1,0 +1,79 @@
+---
+title: "P8105_hw6_yx2510"
+author: "Yi Xiao"
+date: "20/11/2018"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(broom)
+library(leaps)
+library(modelr)
+library(mgcv)
+```
+
+## Problem one:
+1. read and tidy the data:
+```{r message = FALSE}
+homicide_data = read_csv("./data/homicide-data.csv") %>%
+        janitor::clean_names() %>%
+        unite(col = "city_state", city:state, sep = ", ", remove = FALSE) %>%
+        mutate(solved = ifelse(disposition == "Closed by arrest", 1, 0),
+               victim_race = ifelse(victim_race == "White", "white", "non_white"),
+               victim_race = fct_relevel(victim_race, "white", "non_white"),
+               victim_age = as.numeric(victim_age)) %>%
+        filter(!(city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL")))
+```
+2. fit a logistic regression with resolved
+```{r}
+baltimore_data = homicide_data %>%
+        filter(city_state == "Baltimore, MD")
+baltimore_model = baltimore_data %>% 
+        glm(solved ~ victim_age + victim_sex + victim_race, data = ., family = binomial())
+
+baltimore_model %>% 
+  broom::tidy() %>%  # give log odds ratio
+  mutate(OR = exp(estimate), # transform back
+         lower_bound = exp(estimate - std.error*1.96),
+         upper_bound = exp(estimate + std.error*1.96)) %>%
+  filter(term == "victim_racenon-White") %>% 
+  select(term, log_OR = estimate, OR, lower_bound, upper_bound, p.value) %>% 
+  rename("odds_ratio" = OR, "log_odds_ratio" = log_OR) %>%
+  knitr::kable(digits = 3)
+```
+Comment: the odds ratio estimate for victom_race (non_white) is 0.441 with 95% confidence interval being 0.313 to 0.62. This suggested that the odds of solving the non-white-related cases is 0.441 as that of the-white-invloved cases. 
+
+3. Now run glm for each of the cities in your dataset, and extract the adjusted odds ratio (and CI) for solving homicides comparing non-white victims to white victims.
+
+```{r}
+homicide_nest = homicide_data %>% 
+  group_by(city_state) %>% 
+  nest()
+
+homicide_nest %>% 
+  mutate(models = map(data, ~glm(solved ~ victim_age + victim_sex + victim_race, data = .x, family = binomial())),
+    models = map(models, broom::tidy)) %>% 
+  select(-data) %>% 
+  unnest() %>% 
+  filter(term == "victim_racenon_white") %>% 
+  mutate(OR = exp(estimate),
+         lower_bound = exp(estimate - std.error*1.96),
+         upper_bound = exp(estimate + std.error*1.96)) %>%
+  select(city_state, term, OR, lower_bound, upper_bound) %>%
+  mutate(city_state = fct_reorder(city_state, OR)) %>% 
+  ggplot(aes(x = city_state, y = OR)) + geom_point() + 
+  geom_errorbar(mapping = aes(ymin = lower_bound, ymax = upper_bound)) +
+  theme_bw() +
+  theme(legend.position = "bottom",
+        legend.direction = "horizontal",
+        axis.text.x = element_text(angle = 90, size = 7))
+```
+
+### Problem two:
+1. Load and clean the data for regression analys
+```{r}
+birth_data = read_csv("./data/birthweight.csv")
+```
+
