@@ -90,7 +90,7 @@ birth_tidy = birth_data %>%
            ) 
 ```
 
-2. regression model
+2. regression model selection
 We first plotted the distribution of birthweight
 ```{r}
 hist(birth_tidy$bwt)
@@ -101,7 +101,7 @@ We can see from the histgram that the birthweight data roughly follows normal di
 
 We can first select best model for each size based on Cp and adjusted R-squared.
 ```{r}
-fit_best = summary(regsubsets(bwt ~ ., data = birth_tidy))
+select_best = regsubsets(bwt ~ ., data = birth_tidy)
 
 ```
 
@@ -112,3 +112,15 @@ abline(0,1)
 plot(2:10, fit_best$adjr2, xlab="Number of parameters", ylab="Adjusted R2")
 ```
 I plotted the Cp value and adjusted r-squared for different number of parameters to see when Cp is closest to 1 (unbiased) and adjusted R2 is the largest. Cp value and R-2 did not get better noticeabaly after Number of parameters reached 8. However, I'd like to keep the demographic information (babysex) in the 9th medel, so I chose the model with 9 parameters.
+
+Here is the model I chose.
+```{r}
+model1 = lm(bwt ~ )
+```
+
+
+3. compare models
+```{r}
+
+```
+
