@@ -2,7 +2,7 @@
 title: "P8105_hw6_yx2510"
 author: "Yi Xiao"
 date: "20/11/2018"
-output: githubl_document
+output: github_document
 ---
 
 ```{r}
