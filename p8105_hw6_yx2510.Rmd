@@ -136,7 +136,42 @@ birth_tidy %>%
 ```
 comment: The plot shows that the model poorly predicts very low and high birthweight
 
+4. compare models
+```{r}
+cv_df =
+    crossv_mc(birth_tidy, 100) %>% 
+    mutate(
+        train = map(train, as_tibble),
+        test = map(test, as_tibble)
+        ) %>% 
+    mutate(
+        model_1 = map(train, ~lm(bwt ~ babysex + bhead + blength + delwt + frace + gaweeks + mrace + ppbmi + smoken, data = .x)),
+        model_2 = map(train, ~lm(bwt ~ blength + gaweeks, data = .x)),
+        model_3 = map(train, ~lm(bwt ~ babysex + blength + bhead + babysex * blength + babysex * bhead + blength * bhead + babysex * blength * bhead, data = .x))
+        ) %>% 
+    mutate(
+        rmse_model_1 = map2_dbl(model_1, test, ~rmse(model = .x, data = .y)),
+        rmse_model_2 = map2_dbl(model_2, test, ~rmse(model = .x, data = .y)),
+        rmse_model_3 = map2_dbl(model_3, test, ~rmse(model = .x, data = .y))
+    )
+cv_df %>% 
+  select(starts_with("rmse")) %>% 
+  gather(key = model, value = rmse) %>% 
+  mutate(model = str_replace(model, "rmse_", ""),
+         model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + 
+    geom_violin() +
+    labs(
+        x = "model",
+        y = "rmse"
+    )
+```
 
+ `model_1`: `bwt ~ babysex + bhead + blength + delwt + frace + gaweeks + mrace + ppbmi + smoken`
+ `model_2`: `bwt ~ blength + gaweeks`
+ `model_3`: `bwt ~ babysex + blength + bhead + babysex * blength + babysex * bhead + blength * bhead + babysex * blength * bhead`
+
+The above figure presents violin plots the RMSE for the three models. Based on these plots. My model is the best in terms of rmse.
 
 
 
